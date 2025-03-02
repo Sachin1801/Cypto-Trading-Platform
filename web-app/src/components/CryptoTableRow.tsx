@@ -13,7 +13,7 @@ export default function CryptoTableRow({ coin }: CryptoTableRowProps) {
     : 'text-red-600 dark:text-red-400';
 
   return (
-    <div className="grid grid-cols-6 border-b border-gray-200 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-750 transition-colors">
+    <div className="grid grid-cols-6 border-b border-gray-200 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors">
       <div className="col-span-2 p-4 flex items-center">
         <div className="h-8 w-8 mr-3 relative">
           <Image 

@@ -11,6 +11,7 @@ export interface Cryptocurrency {
   price_change_percentage_24h: number;
   market_cap: number;
   total_volume: number;
+  price_change_24h: number; // Add this missing property
 }
 
 export const fetchCryptocurrencies = async (): Promise<Cryptocurrency[]> => {

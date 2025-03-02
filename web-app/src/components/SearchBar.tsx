@@ -21,7 +21,7 @@ export default function SearchBar({ search, handleSearch, onRefresh, isLoading }
         {search && (
           <button
             onClick={() => handleSearch('')}
-            className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 dark:hover:text-gray-200"
+            className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-700 dark:hover:text-gray-100"
             aria-label="Clear search"
           >
             <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">

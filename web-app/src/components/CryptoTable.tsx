@@ -65,7 +65,7 @@ export default function CryptoTable() {
         <>
           {/* Desktop table view - hidden on mobile */}
           <div className="hidden sm:block bg-white dark:bg-gray-800 rounded-lg shadow-lg overflow-hidden">
-            <div className="grid grid-cols-6 bg-gray-100 dark:bg-gray-700 font-medium text-sm text-gray-500 dark:text-gray-300">
+            <div className="grid grid-cols-6 bg-gray-100 dark:bg-gray-700 font-medium text-sm text-gray-600 dark:text-gray-200">
               <div className="col-span-2 p-4">Name</div>
               <div className="p-4">Price</div>
               <div className="p-4 hidden md:block">24h Volume</div>
