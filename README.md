@@ -25,3 +25,48 @@ cd crypto-price-tracker
 cd web-app
 npm install
 npm run dev
+```
+The web app will be available at http://localhost:3000
+
+### Setup and Run Documentation
+
+```bash
+# From the project root
+cd docs
+npm install
+npm run start
+```
+
+The documentation will be available at http://localhost:3000
+`You might need to choose another port if the web-app is live on PORT 3000`
+
+## Features
+
+- Real-time cryptocurrency price tracking
+- Search functionality
+- Manual and automatic data refresh
+- Responsive design for mobile and desktop
+- Comprehensive documentation
+
+## Technologies Used
+
+- Next.js
+- TypeScript
+- Tailwind CSS
+- Zustand (State Management)
+- Axios
+- CoinGecko API
+- Docusaurus
+
+## Documentation
+
+The documentation covers:
+
+- Project setup guide
+- API integration details
+- State management explanation
+- Challenges and solutions
+
+## License
+
+MIT
