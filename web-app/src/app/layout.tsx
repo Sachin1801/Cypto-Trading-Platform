@@ -6,7 +6,7 @@ const inter = Inter({ subsets: ['latin'] });
 
 export const metadata: Metadata = {
   title: 'Crypto Price Tracker',
-  description: 'Track live cryptocurrency prices',
+  description: 'Real-time cryptocurrency price tracking application',
 };
 
 export default function RootLayout({
