@@ -1,6 +1,5 @@
 import axios from 'axios';
 
-// Using CoinGecko API (free, no API key required for basic usage)
 const API_URL = 'https://api.coingecko.com/api/v3';
 
 export interface Cryptocurrency {
@@ -11,6 +10,7 @@ export interface Cryptocurrency {
   current_price: number;
   price_change_percentage_24h: number;
   market_cap: number;
+  total_volume: number;
 }
 
 export const fetchCryptocurrencies = async (): Promise<Cryptocurrency[]> => {

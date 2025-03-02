@@ -1,95 +1,105 @@
-import { useCryptoStore } from '../store/cryptoStore';
-import LoadingIndicator from './LoadingIndicator';
-import { useEffect } from 'react';
-import { RefreshCw, TrendingUp, TrendingDown } from 'lucide-react';
-import { motion } from 'framer-motion';
+'use client';
+
+import { useState, useEffect } from 'react';
+import { fetchCryptocurrencies, Cryptocurrency } from '@/services/api';
+import CryptoTableRow from './CryptoTableRow';
+import SearchBar from './SearchBar';
+import CryptoCardView from './CryptoCardView';
 
 export default function CryptoTable() {
-  const { cryptocurrencies, isLoading, error, fetchCryptos, searchTerm } = useCryptoStore();
+  const [coins, setCoins] = useState<Cryptocurrency[]>([]);
+  const [filteredCoins, setFilteredCoins] = useState<Cryptocurrency[]>([]);
+  const [search, setSearch] = useState('');
+  const [isLoading, setIsLoading] = useState(false);
+
+  const loadCryptoData = async () => {
+    setIsLoading(true);
+    try {
+      const data = await fetchCryptocurrencies();
+      const topFiveCoins = data.slice(0, 5);
+      setCoins(topFiveCoins);
+      setFilteredCoins(topFiveCoins);
+      // setCoins(data);
+      // setFilteredCoins(data);
+    } catch (error) {
+      console.error('Error fetching cryptocurrency data:', error);
+    } finally {
+      setIsLoading(false);
+    }
+  };
 
   useEffect(() => {
-    fetchCryptos();
-    const intervalId = setInterval(() => fetchCryptos(), 60000);
-    return () => clearInterval(intervalId);
-  }, [fetchCryptos]);
+    loadCryptoData();
+  }, []);
 
-  const filteredCryptos = cryptocurrencies.filter(crypto => 
-    crypto.name.toLowerCase().includes(searchTerm.toLowerCase()) || 
-    crypto.symbol.toLowerCase().includes(searchTerm.toLowerCase())
-  );
+  useEffect(() => {
+    const filtered = coins.filter(coin =>
+      coin.name.toLowerCase().includes(search.toLowerCase()) ||
+      coin.symbol.toLowerCase().includes(search.toLowerCase())
+    );
+    setFilteredCoins(filtered);
+  }, [search, coins]);
 
-  const displayCryptos = searchTerm ? filteredCryptos : filteredCryptos.slice(0, 5);
-
-  if (error) {
-    return <div className="text-red-500 p-4">{error}</div>;
-  }
-
-  if (isLoading && cryptocurrencies.length === 0) {
-    return <LoadingIndicator />;
-  }
+  const handleSearch = (searchTerm: string) => {
+    setSearch(searchTerm);
+  };
 
   return (
-    <div className="max-w-4xl mx-auto">
-      <div className="flex justify-between items-center mb-8">
-        <h1 className="text-3xl font-bold text-gray-800 dark:text-white">
-          Crypto Price Tracker
-        </h1>
-        <button
-          onClick={() => fetchCryptos()}
-          disabled={isLoading}
-          className="flex items-center gap-2 bg-gray-100 hover:bg-gray-200 px-4 py-2 rounded transition-colors"
-        >
-          <RefreshCw className={`h-4 w-4 ${isLoading ? 'animate-spin' : ''}`} />
-          Refresh
-        </button>
-      </div>
+    <div className="max-w-7xl mx-auto px-4 sm:px-6">
+      <h1 className="text-2xl sm:text-3xl font-bold text-center mb-4 sm:mb-8 text-gray-800 dark:text-white">
+        Cryptocurrency Price Tracker
+      </h1>
+      <SearchBar 
+        search={search} 
+        handleSearch={handleSearch} 
+        onRefresh={loadCryptoData}
+        isLoading={isLoading} 
+      />
 
-      <div className="grid gap-4">
-        {displayCryptos.map((crypto) => (
-          <motion.div
-            key={crypto.id}
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            className="bg-white dark:bg-gray-800 rounded-lg shadow-lg p-4 flex items-center justify-between"
-          >
-            <div className="flex items-center space-x-4">
-              <img
-                src={crypto.image}
-                alt={crypto.name}
-                className="w-10 h-10 rounded-full"
-              />
-              <div>
-                <h2 className="font-semibold text-gray-800 dark:text-white">
-                  {crypto.name}
-                </h2>
-                <p className="text-gray-500 dark:text-gray-400 uppercase">
-                  {crypto.symbol}
-                </p>
+      {isLoading ? (
+        <div className="text-center py-6 sm:py-10 text-gray-600 dark:text-gray-300">
+          <div className="inline-block animate-spin rounded-full h-6 w-6 sm:h-8 sm:w-8 border-t-2 border-b-2 border-blue-500 mr-2"></div>
+          Loading cryptocurrency data...
+        </div>
+      ) : (
+        <>
+          {/* Desktop table view - hidden on mobile */}
+          <div className="hidden sm:block bg-white dark:bg-gray-800 rounded-lg shadow-lg overflow-hidden">
+            <div className="grid grid-cols-6 bg-gray-100 dark:bg-gray-700 font-medium text-sm text-gray-500 dark:text-gray-300">
+              <div className="col-span-2 p-4">Name</div>
+              <div className="p-4">Price</div>
+              <div className="p-4 hidden md:block">24h Volume</div>
+              <div className="p-4">24h Change</div>
+              <div className="p-4 hidden md:block">Market Cap</div>
+            </div>
+
+            {filteredCoins.length > 0 ? (
+              filteredCoins.map((coin) => (
+                <CryptoTableRow key={coin.id} coin={coin} />
+              ))
+            ) : (
+              <div className="text-center py-10 text-gray-600 dark:text-gray-300">
+                No cryptocurrencies found matching your search.
               </div>
-            </div>
-            <div className="text-right">
-              <p className="font-bold text-gray-800 dark:text-white">
-                ${crypto.current_price.toLocaleString()}
-              </p>
-              <p
-                className={`flex items-center space-x-1 ${
-                  crypto.price_change_percentage_24h >= 0
-                    ? 'text-green-500'
-                    : 'text-red-500'
-                }`}
-              >
-                {crypto.price_change_percentage_24h >= 0 ? (
-                  <TrendingUp className="w-4 h-4" />
-                ) : (
-                  <TrendingDown className="w-4 h-4" />
-                )}
-                <span>{Math.abs(crypto.price_change_percentage_24h).toFixed(2)}%</span>
-              </p>
-            </div>
-          </motion.div>
-        ))}
-      </div>
-      {isLoading && <div className="mt-4"><LoadingIndicator /></div>}
+            )}
+          </div>
+
+          {/* Mobile card view - shown only on small screens */}
+          <div className="sm:hidden">
+            {filteredCoins.length > 0 ? (
+              <div className="space-y-4">
+                {filteredCoins.map((coin) => (
+                  <CryptoCardView key={coin.id} coin={coin} />
+                ))}
+              </div>
+            ) : (
+              <div className="text-center py-6 text-gray-600 dark:text-gray-300">
+                No cryptocurrencies found matching your search.
+              </div>
+            )}
+          </div>
+        </>
+      )}
     </div>
   );
 }
