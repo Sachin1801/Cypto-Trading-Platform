@@ -1,6 +1,3 @@
-**API Integration (`docs/docs/api-integration.md`):**
-
-```markdown
 ---
 sidebar_position: 3
 ---
@@ -11,7 +8,7 @@ The Crypto Price Tracker uses the CoinGecko API to fetch cryptocurrency data. Th
 
 ## CoinGecko API
 
-[CoinGecko](https://www.coingecko.com/en/api/documentation) provides a free API for cryptocurrency data, which we use to fetch current prices, market caps, and 24-hour price changes.
+[CoinGecko](https://www.coingecko.com/en/api/documentation) provides a free API for cryptocurrency data, which is used to fetch current prices, market caps, and 24-hour price changes.
 
 ### API Endpoints Used
 
@@ -59,3 +56,17 @@ export const fetchCryptocurrencies = async (): Promise<Cryptocurrency[]> => {
     throw error;
   }
 };
+```
+
+## Error Handling
+
+The API integration includes error handling to manage situations when the API is unavailable or returns errors. Errors are caught and displayed to the user with appropriate messages.
+
+## Data Refresh Strategy
+
+Data is refreshed in two ways:
+
+1. **Automatic Refresh**: Prices are automatically refreshed every 60 seconds to ensure data is current.
+2. **Manual Refresh**: Users can manually refresh the data by clicking the "Refresh" button.
+
+This approach ensures that users always have access to up-to-date cryptocurrency prices.

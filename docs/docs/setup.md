@@ -57,7 +57,8 @@ To run the documentation site locally:
     # or
     yarn start
     ```
-4. Open your browser and navigate to http://localhost:3000 to view the documentation. (`you might need to choose another port if the web-app is live on PORT 3000`)
+4. Open your browser and navigate to http://localhost:3000 to view the documentation. 
+(`you might need to choose another port if the web-app is live on PORT 3000`)
 
 ## Building for Production
 
