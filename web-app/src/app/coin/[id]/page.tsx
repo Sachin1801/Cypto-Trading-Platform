@@ -4,8 +4,9 @@ import { useEffect, useState } from 'react';
 import { useParams } from 'next/navigation';
 import { fetchCoinDetail, fetchCoinHistory, CoinDetail, HistoricalData, timeframeToParams, APIError } from '@/services/api';
 import Image from 'next/image';
-import { Star, ArrowUpRight, ChevronRight, ExternalLink, Globe, Twitter, ArrowUp, ArrowDown, Clock, DollarSign, TrendingUp, ChartLine } from 'lucide-react';
+import { Star, ArrowUpRight, ChevronRight, ExternalLink, Globe, Twitter, ArrowUp, ArrowDown, Clock, DollarSign, TrendingUp } from 'lucide-react';
 import SparklineChart from '@/components/SparklineChart';
+import Link from 'next/link';
 
 const timeframes = [
   { label: '1h', key: 'price_change_percentage_1h_in_currency' },
@@ -173,7 +174,7 @@ export default function CoinPage() {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex items-center justify-between h-16">
             <div className="flex items-center space-x-2 text-sm text-gray-600">
-              <a href="/" className="hover:text-gray-900">Cryptocurrencies</a>
+              <Link href="/" className="hover:text-gray-900">Cryptocurrencies</Link>
               <ChevronRight className="w-4 h-4" />
               <span className="text-gray-900">{coin.name} Price</span>
             </div>
