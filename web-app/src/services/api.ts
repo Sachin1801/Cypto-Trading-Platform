@@ -1,6 +1,7 @@
 import axios from 'axios';
 
 const API_URL = 'https://api.coingecko.com/api/v3';
+const PER_PAGE = 100; // Increased to 100 coins per page
 
 export interface Cryptocurrency {
   id: string;
@@ -9,25 +10,76 @@ export interface Cryptocurrency {
   image: string;
   current_price: number;
   price_change_percentage_24h: number;
+  price_change_percentage_1h: number;
+  price_change_percentage_7d: number;
   market_cap: number;
   total_volume: number;
-  price_change_24h: number; // Add this missing property
+  sparkline_in_7d: {
+    price: number[];
+  };
+  market_cap_rank: number;
 }
 
-export const fetchCryptocurrencies = async (): Promise<Cryptocurrency[]> => {
+const coinGeckoApi = axios.create({
+  baseURL: API_URL,
+  params: {
+    vs_currency: 'usd',
+    sparkline: true,
+    price_change_percentage: '1h,24h,7d'
+  }
+});
+
+export const fetchCryptocurrencies = async (page = 1): Promise<Cryptocurrency[]> => {
   try {
-    const response = await axios.get(`${API_URL}/coins/markets`, {
+    const response = await coinGeckoApi.get('/coins/markets', {
       params: {
-        vs_currency: 'usd',
         order: 'market_cap_desc',
-        per_page: 50, // Fetch more than 5 to allow for searching
-        page: 1,
-        sparkline: false,
+        per_page: PER_PAGE,
+        page,
       }
     });
     return response.data;
   } catch (error) {
     console.error('Error fetching cryptocurrencies:', error);
+    throw error;
+  }
+};
+
+export const fetchTrendingCoins = async (): Promise<Cryptocurrency[]> => {
+  try {
+    const response = await coinGeckoApi.get('/search/trending');
+    const trendingIds = response.data.coins.map((coin: any) => coin.item.id);
+    
+    // Fetch full data for trending coins
+    const trendingData = await coinGeckoApi.get('/coins/markets', {
+      params: {
+        ids: trendingIds.join(','),
+        order: 'market_cap_desc',
+        per_page: trendingIds.length,
+        page: 1,
+      }
+    });
+    
+    return trendingData.data;
+  } catch (error) {
+    console.error('Error fetching trending coins:', error);
+    throw error;
+  }
+};
+
+export const fetchDefiCoins = async (): Promise<Cryptocurrency[]> => {
+  try {
+    const response = await coinGeckoApi.get('/coins/markets', {
+      params: {
+        category: 'decentralized-finance-defi',
+        order: 'market_cap_desc',
+        per_page: PER_PAGE,
+        page: 1,
+      }
+    });
+    return response.data;
+  } catch (error) {
+    console.error('Error fetching DeFi coins:', error);
     throw error;
   }
 };

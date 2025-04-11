@@ -1,26 +1,52 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { fetchCryptocurrencies, Cryptocurrency } from '@/services/api';
+import { fetchCryptocurrencies, fetchTrendingCoins, fetchDefiCoins, Cryptocurrency } from '@/services/api';
 import CryptoTableRow from './CryptoTableRow';
 import SearchBar from './SearchBar';
-import CryptoCardView from './CryptoCardView';
+import Navigation from './Navigation';
+import { ChevronLeft, ChevronRight } from 'lucide-react';
+
+const categories = [
+  { id: 'all', name: 'All', icon: '🟢' },
+  { id: 'highlights', name: 'Highlights', icon: '📋' },
+  { id: 'pump', name: 'Pump.fun', icon: '📈' },
+  { id: 'categories', name: 'Categories', icon: '📁' },
+  { id: 'terminal', name: 'Terminal of Truths', icon: '🔥' },
+  { id: 'polkadot', name: 'Polkadot Ecosystem', icon: '🔥' },
+  { id: 'ai', name: 'AI Meme', icon: '🔥' },
+  { id: 'pump-eco', name: 'Pump.fun Ecosystem', icon: '🔥' },
+  { id: 'customize', name: 'Customise', icon: '⚙️' },
+];
 
 export default function CryptoTable() {
   const [coins, setCoins] = useState<Cryptocurrency[]>([]);
   const [filteredCoins, setFilteredCoins] = useState<Cryptocurrency[]>([]);
   const [search, setSearch] = useState('');
   const [isLoading, setIsLoading] = useState(false);
+  const [activeCategory, setActiveCategory] = useState('all');
+  const [favorites, setFavorites] = useState<Set<string>>(new Set());
+  const [currentPage, setCurrentPage] = useState(1);
+  const [totalResults, setTotalResults] = useState(0);
+  const rowsPerPage = 100;
 
-  const loadCryptoData = async () => {
+  const loadCryptoData = async (category: string = activeCategory, page: number = currentPage) => {
     setIsLoading(true);
     try {
-      const data = await fetchCryptocurrencies();
-      const topFiveCoins = data.slice(0, 5);
-      setCoins(topFiveCoins);
-      setFilteredCoins(topFiveCoins);
-      // setCoins(data);
-      // setFilteredCoins(data);
+      let data: Cryptocurrency[] = [];
+      switch (category) {
+        case 'highlights':
+          data = await fetchTrendingCoins();
+          break;
+        case 'defi':
+          data = await fetchDefiCoins();
+          break;
+        default:
+          data = await fetchCryptocurrencies(page);
+      }
+      setCoins(data);
+      setFilteredCoins(data);
+      setTotalResults(17000); // Approximate total from CoinGecko
     } catch (error) {
       console.error('Error fetching cryptocurrency data:', error);
     } finally {
@@ -29,8 +55,8 @@ export default function CryptoTable() {
   };
 
   useEffect(() => {
-    loadCryptoData();
-  }, []);
+    loadCryptoData(activeCategory, currentPage);
+  }, [activeCategory, currentPage]);
 
   useEffect(() => {
     const filtered = coins.filter(coin =>
@@ -44,62 +70,124 @@ export default function CryptoTable() {
     setSearch(searchTerm);
   };
 
-  return (
-    <div className="max-w-7xl mx-auto px-4 sm:px-6">
-      <h1 className="text-2xl sm:text-3xl font-bold text-center mb-4 sm:mb-8 text-gray-800 dark:text-white">
-        Cryptocurrency Price Tracker
-      </h1>
-      <SearchBar 
-        search={search} 
-        handleSearch={handleSearch} 
-        onRefresh={loadCryptoData}
-        isLoading={isLoading} 
-      />
+  const handleCategoryChange = (category: string) => {
+    setActiveCategory(category);
+    setCurrentPage(1);
+  };
 
-      {isLoading ? (
-        <div className="text-center py-6 sm:py-10 text-gray-600 dark:text-gray-300">
-          <div className="inline-block animate-spin rounded-full h-6 w-6 sm:h-8 sm:w-8 border-t-2 border-b-2 border-blue-500 mr-2"></div>
-          Loading cryptocurrency data...
-        </div>
-      ) : (
-        <>
-          {/* Desktop table view - hidden on mobile */}
-          <div className="hidden sm:block bg-white dark:bg-gray-800 rounded-lg shadow-lg overflow-hidden">
-            <div className="grid grid-cols-6 bg-gray-100 dark:bg-gray-700 font-medium text-sm text-gray-600 dark:text-gray-200">
-              <div className="col-span-2 p-4">Name</div>
-              <div className="p-4">Price</div>
-              <div className="p-4 hidden md:block">24h Volume</div>
-              <div className="p-4">24h Change</div>
-              <div className="p-4 hidden md:block">Market Cap</div>
+  const toggleFavorite = (coinId: string) => {
+    setFavorites(prev => {
+      const newFavorites = new Set(prev);
+      if (newFavorites.has(coinId)) {
+        newFavorites.delete(coinId);
+      } else {
+        newFavorites.add(coinId);
+      }
+      return newFavorites;
+    });
+  };
+
+  const totalPages = Math.ceil(totalResults / rowsPerPage);
+
+  return (
+    <div className="min-h-screen bg-gray-50/50">
+      <Navigation 
+        activeCategory={activeCategory}
+        onCategoryChange={handleCategoryChange}
+      />
+      
+      <div className="max-w-[1400px] mx-auto px-4">
+        <SearchBar 
+          search={search} 
+          handleSearch={handleSearch} 
+          onRefresh={() => loadCryptoData(activeCategory, currentPage)}
+          isLoading={isLoading} 
+        />
+
+        {isLoading && !coins.length ? (
+          <div className="text-center py-8 text-gray-600">
+            <div className="inline-block animate-spin rounded-full h-5 w-5 border-2 border-gray-300 border-t-blue-600 mr-2"></div>
+            Loading cryptocurrency data...
+          </div>
+        ) : (
+          <>
+            <div className="bg-white rounded-lg shadow-sm overflow-x-auto">
+              <table className="w-full border-collapse">
+                <thead>
+                  <tr className="text-xs text-gray-500 border-b border-gray-100">
+                    <th className="py-3 pl-4 pr-2 text-left w-[50px]">#</th>
+                    <th className="px-2 text-left">Coin</th>
+                    <th className="px-2 text-right">Price</th>
+                    <th className="px-2 text-right">1h</th>
+                    <th className="px-2 text-right">24h</th>
+                    <th className="px-2 text-right">7d</th>
+                    <th className="px-2 text-right">24h Volume</th>
+                    <th className="px-2 text-right">Market Cap</th>
+                    <th className="px-4 text-center w-[180px]">Last 7 Days</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {filteredCoins.length > 0 ? (
+                    filteredCoins.map((coin) => (
+                      <CryptoTableRow 
+                        key={coin.id} 
+                        coin={coin} 
+                        rank={coin.market_cap_rank}
+                        isFavorite={favorites.has(coin.id)}
+                        onToggleFavorite={() => toggleFavorite(coin.id)}
+                      />
+                    ))
+                  ) : (
+                    <tr>
+                      <td colSpan={9} className="text-center py-8 text-gray-600">
+                        No cryptocurrencies found matching your search.
+                      </td>
+                    </tr>
+                  )}
+                </tbody>
+              </table>
             </div>
 
-            {filteredCoins.length > 0 ? (
-              filteredCoins.map((coin) => (
-                <CryptoTableRow key={coin.id} coin={coin} />
-              ))
-            ) : (
-              <div className="text-center py-10 text-gray-600 dark:text-gray-300">
-                No cryptocurrencies found matching your search.
+            <div className="flex items-center justify-between py-4 text-sm text-gray-600">
+              <div>
+                Showing {((currentPage - 1) * rowsPerPage) + 1} to {Math.min(currentPage * rowsPerPage, totalResults)} of {totalResults} results
               </div>
-            )}
-          </div>
-
-          {/* Mobile card view - shown only on small screens */}
-          <div className="sm:hidden">
-            {filteredCoins.length > 0 ? (
-              <div className="space-y-4">
-                {filteredCoins.map((coin) => (
-                  <CryptoCardView key={coin.id} coin={coin} />
-                ))}
+              <div className="flex items-center space-x-2">
+                <button
+                  onClick={() => setCurrentPage(p => Math.max(1, p - 1))}
+                  disabled={currentPage === 1}
+                  className="p-1 rounded hover:bg-gray-100 disabled:opacity-50"
+                >
+                  <ChevronLeft className="w-5 h-5" />
+                </button>
+                <div className="flex items-center space-x-1">
+                  {[...Array(Math.min(5, totalPages))].map((_, i) => (
+                    <button
+                      key={i}
+                      onClick={() => setCurrentPage(i + 1)}
+                      className={`px-3 py-1 rounded ${
+                        currentPage === i + 1 
+                          ? 'bg-blue-50 text-blue-600' 
+                          : 'hover:bg-gray-100'
+                      }`}
+                    >
+                      {i + 1}
+                    </button>
+                  ))}
+                  {totalPages > 5 && <span>...</span>}
+                </div>
+                <button
+                  onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))}
+                  disabled={currentPage === totalPages}
+                  className="p-1 rounded hover:bg-gray-100 disabled:opacity-50"
+                >
+                  <ChevronRight className="w-5 h-5" />
+                </button>
               </div>
-            ) : (
-              <div className="text-center py-6 text-gray-600 dark:text-gray-300">
-                No cryptocurrencies found matching your search.
-              </div>
-            )}
-          </div>
-        </>
-      )}
+            </div>
+          </>
+        )}
+      </div>
     </div>
   );
 }
