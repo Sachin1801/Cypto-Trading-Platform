@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { fetchCryptocurrencies, fetchTrendingCoins, fetchDefiCoins, Cryptocurrency } from '@/services/api';
+import { fetchTopCoins, Cryptocurrency } from '@/services/api';
 import CryptoTableRow from './CryptoTableRow';
 import SearchBar from './SearchBar';
 import Navigation from './Navigation';
@@ -33,20 +33,12 @@ export default function CryptoTable() {
   const loadCryptoData = async (category: string = activeCategory, page: number = currentPage) => {
     setIsLoading(true);
     try {
-      let data: Cryptocurrency[] = [];
-      switch (category) {
-        case 'highlights':
-          data = await fetchTrendingCoins();
-          break;
-        case 'defi':
-          data = await fetchDefiCoins();
-          break;
-        default:
-          data = await fetchCryptocurrencies(page);
-      }
+      // For now, we'll just use fetchTopCoins for all categories
+      // In the future, we can add more specific API endpoints for different categories
+      const data = await fetchTopCoins(rowsPerPage);
       setCoins(data);
       setFilteredCoins(data);
-      setTotalResults(17000); // Approximate total from CoinGecko
+      setTotalResults(data.length); // For now, just show what we have
     } catch (error) {
       console.error('Error fetching cryptocurrency data:', error);
     } finally {

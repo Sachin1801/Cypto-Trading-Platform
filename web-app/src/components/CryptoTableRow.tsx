@@ -2,8 +2,8 @@
 
 import { Cryptocurrency } from '@/services/api';
 import Image from 'next/image';
-import { Star } from 'lucide-react';
-import SparklineChart from './SparklineChart';
+import { Star, TrendingUp, TrendingDown } from 'lucide-react';
+import Link from 'next/link';
 
 interface CryptoTableRowProps {
   coin: Cryptocurrency;
@@ -42,30 +42,43 @@ export default function CryptoTableRow({ coin, rank, isFavorite, onToggleFavorit
           <button 
             onClick={onToggleFavorite}
             className="opacity-50 hover:opacity-100 transition-opacity"
+            aria-label={`${isFavorite ? 'Remove from' : 'Add to'} favorites`}
+            title={`${isFavorite ? 'Remove from' : 'Add to'} favorites`}
           >
             <Star 
               className={`h-4 w-4 ${isFavorite ? 'fill-yellow-400 text-yellow-400' : 'text-gray-300'}`}
             />
           </button>
-          <span className="text-gray-500 tabular-nums">{rank}</span>
+          <Link href={`/coin/${coin.id}`} className="flex items-center space-x-3">
+            <span className="text-gray-500 tabular-nums">{rank}</span>
+          </Link>
         </div>
       </td>
       
       <td className="px-2 py-4">
         <div className="flex items-center">
           <div className="h-8 w-8 relative mr-3 flex-shrink-0">
-            <Image 
-              src={coin.image} 
-              alt={coin.name} 
-              fill
-              className="rounded-full"
-            />
+            <Link href={`/coin/${coin.id}`} className="block h-full w-full">
+              <Image 
+                src={coin.image} 
+                alt={coin.name} 
+                fill
+                sizes="(max-width: 32px) 100vw, 32px"
+                className="rounded-full object-cover"
+                priority={rank <= 10}
+              />
+            </Link>
           </div>
           <div className="flex flex-col min-w-[140px]">
-            <div className="font-medium text-gray-900">{coin.name}</div>
+            <Link href={`/coin/${coin.id}`} className="font-medium text-gray-900 hover:text-blue-600">
+              {coin.name}
+            </Link>
             <div className="text-gray-500 text-xs">{coin.symbol.toUpperCase()}</div>
           </div>
-          <button className="ml-4 px-3 py-1 text-xs bg-[#edfcf2] text-[#16a34a] rounded">
+          <button 
+            className="ml-4 px-3 py-1 text-xs bg-[#edfcf2] text-[#16a34a] rounded hover:bg-[#d1f7df] transition-colors"
+            aria-label={`Buy ${coin.name}`}
+          >
             Buy
           </button>
         </div>
@@ -95,12 +108,23 @@ export default function CryptoTableRow({ coin, rank, isFavorite, onToggleFavorit
 
       <td className="px-4 py-4">
         <div className="w-[164px] h-[40px] flex items-center justify-center mx-auto">
-          <SparklineChart 
-            data={coin.sparkline_in_7d.price} 
-            height={40}
-            width={164}
-            color={coin.price_change_percentage_7d >= 0 ? '#22c55e' : '#ef4444'}
-          />
+          {typeof coin.price_change_percentage_7d === 'number' ? (
+            coin.price_change_percentage_7d >= 0 ? (
+              <div className="flex items-center text-green-500">
+                <TrendingUp className="w-6 h-6 mr-2" />
+                <span>+{coin.price_change_percentage_7d.toFixed(2)}%</span>
+              </div>
+            ) : (
+              <div className="flex items-center text-red-500">
+                <TrendingDown className="w-6 h-6 mr-2" />
+                <span>{coin.price_change_percentage_7d.toFixed(2)}%</span>
+              </div>
+            )
+          ) : (
+            <div className="flex items-center text-gray-400">
+              <span>N/A</span>
+            </div>
+          )}
         </div>
       </td>
     </tr>
